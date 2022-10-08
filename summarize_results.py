@@ -109,7 +109,8 @@ def summarize_uncertainties(N=1000):
             ('Biorefinery', 'WWT CAPEX frac'),
             ('Biorefinery', 'WWT annual electricity consumption frac'),
             ('Biorefinery', 'WWT ECR'),
-            ]
+            ('Biorefinery', 'CO2 cost total [$/tonne CO2]'),
+            ('Biorefinery', 'CO2 cost net [$/tonne CO2]'),            ]
     
     get_data = lambda df, cols: [df.get(col, empty_df) for col in cols]
     get_module_results = lambda df_dct: {m: get_data(df, get_col_names(m)) for m, df in df_dct.items()}
@@ -117,16 +118,18 @@ def summarize_uncertainties(N=1000):
     exist_results_dct = get_module_results(exist_df_dct)
     new_results_dct = get_module_results(new_df_dct)
     
-    dct_lst = mpsp_dct, gwp_dct, capex_dct, electricity_dct, ecr_dct = [{}, {}, {}, {}, {}]
+    dct_lst = [{}, {}, {}, {}, {}, {}, {}]
+    mpsp_dct, gwp_dct, capex_dct, electricity_dct, ecr_dct, co2_tot_dct, co2_net_dct = dct_lst
     for m in modules_all:
         exist_results = exist_results_dct[m]       
         new_results = new_results_dct[m]
-
         mpsp_dct[m] = [exist_results[0]] + new_results[:3]
         gwp_dct[m] = [exist_results[3]] + new_results[3:6]
         capex_dct[m] = [exist_results[6], new_results[6]]
         electricity_dct[m] = [exist_results[7], new_results[7]]
         ecr_dct[m] = [exist_results[8], new_results[8]]
+        co2_tot_dct[m] = [exist_results[9], new_results[9]]
+        co2_net_dct[m] = [exist_results[10], new_results[10]]
         
     def compile_exist_and_new(df_lst):
         df = pd.concat(df_lst, axis=1)
@@ -141,7 +144,7 @@ def summarize_uncertainties(N=1000):
     compiled = [pd.concat([compile_exist_and_new(df_lst)
                            for df_lst in dct.values()])
                 for dct in dct_lst]
-    sheet_names = ['MPSP', 'GWP', 'CAPEX', 'Electricity', 'ECR']
+    sheet_names = ['MPSP', 'GWP', 'CAPEX', 'Electricity', 'ECR', 'CO2tot', 'CO2net']
     writer = pd.ExcelWriter(os.path.join(folder, f'summary_uncertainty_{N}.xlsx'))
     for df, name in zip(compiled, sheet_names): df.to_excel(writer, sheet_name=name)
     writer.close()
