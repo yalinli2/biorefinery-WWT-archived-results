@@ -160,7 +160,7 @@ def summarize_spearman(
         ):
     get_path = lambda module, kind, N: os.path.join(ufolder, f'{module}_{kind}_{N}.xlsx')
     def read_df(path, stat):
-        df = pd.read_excel(pd.ExcelFile(path), f'Spearman_{stat}', header=[0], index_col=[0,1])
+        df = pd.read_excel(pd.ExcelFile(path), f'Spearman {stat}', header=[0], index_col=[0,1])
         df = df.iloc[:, :2].copy()
         df.columns = ('MPSP', 'GWP')
         return df
@@ -250,7 +250,7 @@ def summarize_BMPs(
         df.sort_index(level=1, inplace=True)
         df.index = new_index
 
-    path = os.path.join(folder, 'summary_BMPs.xlsx')
+    path = os.path.join(folder, 'summary_BMP.xlsx')
     with pd.ExcelWriter(path) as writer:
         MPSP_df.to_excel(writer, sheet_name='MPSP')
         GWP_df.to_excel(writer, sheet_name='GWP')
@@ -262,7 +262,7 @@ def summarize_BMPs(
 
 if __name__ == '__main__':
     N = 1000
-    # summarize_baselines()
-    # summarize_uncertainties(N=N)
+    summarize_baselines()
+    summarize_uncertainties(N=N)
     summarize_spearman(N=N)
-    # summarize_BMPs()
+    summarize_BMPs()
