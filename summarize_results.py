@@ -153,36 +153,46 @@ def summarize_uncertainties(N=1000):
 # %%
 
 def summarize_spearman(
-        cutoff_val=0.2, # absolute value > this cutoff
-        cutoff_rank=10, # select the top X
         N=1000,
+        p_sig=0.05,
+        cutoff_val=0.2, # absolute value > this cutoff
+        cutoff_rank=None, # select the top X
         ):
     get_path = lambda module, kind, N: os.path.join(ufolder, f'{module}_{kind}_{N}.xlsx')
-    read_df = lambda path: pd.read_excel(pd.ExcelFile(path), 'Spearman', index_col=[0, 1])
+    def read_df(path, stat):
+        df = pd.read_excel(pd.ExcelFile(path), f'Spearman_{stat}', header=[0], index_col=[0,1])
+        df = df.iloc[:, :2].copy()
+        df.columns = ('MPSP', 'GWP')
+        return df
     kinds = ('exist', 'new')
     with pd.ExcelWriter(os.path.join(folder, f'summary_spearman_{N}.xlsx')) as writer:
         for module in modules_all:
-            dfs = [read_df(get_path(module, kind, N)).iloc[:, :2] for kind in kinds]
-            per = 'gal' if module!='la' else 'kg'
-            key_MPSP = f'MPSP [$/{per}]'
-            key_GWP = f'Product GWP disp [kg CO2/{per}]'
+            rhos = [read_df(get_path(module, kind, N), 'rho') for kind in kinds]
+            ps = [read_df(get_path(module, kind, N), 'p') for kind in kinds]            
+            
             tops = []
-            for df in dfs:
-                df['abs_MPSP'] = df[key_MPSP].abs()
-                df['abs_GWP'] = df[key_GWP].abs()
-                select = [df.sort_values(by=[key], ascending=False)[:cutoff_rank]
-                        for key in ('abs_MPSP', 'abs_GWP')]
+            for rho, p in zip(rhos, ps):
+                df = rho[p<=p_sig].dropna(how='all')
+                df['abs_MPSP'] = df['MPSP'].abs()
+                df['abs_GWP'] = df['GWP'].abs()
+                if cutoff_rank:
+                    select = [df.sort_values(by=[key], ascending=False)[:cutoff_rank]
+                            for key in ('abs_MPSP', 'abs_GWP')]
+                else:
+                    select = [df.sort_values(by=[key], ascending=False)
+                            for key in ('abs_MPSP', 'abs_GWP')]
                 top = pd.concat(select).drop_duplicates()
                 top = top.iloc[:, :2]
                 tops.append(top)
-
+            
             module_dfs = [df[
-                (df[key_MPSP]<=-cutoff_val)|
-                (df[key_MPSP]>=cutoff_val)|
-                (df[key_GWP]<=-cutoff_val)|
-                (df[key_GWP]>=cutoff_val)
+                (df['MPSP']<=-cutoff_val)|
+                (df['MPSP']>=cutoff_val)|
+                (df['GWP']<=-cutoff_val)|
+                (df['GWP']>=cutoff_val)
                 ] for df in tops]
             compiled = pd.concat(module_dfs, axis=1, keys=kinds)
+            compiled = compiled.where(compiled.abs()>=cutoff_val, other=np.nan).dropna(how='all')
             compiled.to_excel(writer, sheet_name=module)
 
 
@@ -252,7 +262,7 @@ def summarize_BMPs(
 
 if __name__ == '__main__':
     N = 1000
-    summarize_baselines()
-    summarize_uncertainties(N=N)
+    # summarize_baselines()
+    # summarize_uncertainties(N=N)
     summarize_spearman(N=N)
-    summarize_BMPs()
+    # summarize_BMPs()
