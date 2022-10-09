@@ -163,13 +163,12 @@ def summarize_spearman(
     with pd.ExcelWriter(os.path.join(folder, f'summary_spearman_{N}.xlsx')) as writer:
         for module in modules_all:
             dfs = [read_df(get_path(module, kind, N)).iloc[:, :2] for kind in kinds]
-            unit = 'gal' if module!='la' else 'kg'
-            key_MPSP = f'MPSP [$/{unit}]'
-            key_GWP = f'Product GWP disp [kg CO2/{unit}]'
+            per = 'gal' if module!='la' else 'kg'
+            key_MPSP = f'MPSP [$/{per}]'
+            key_GWP = f'Product GWP disp [kg CO2/{per}]'
             tops = []
             for df in dfs:
-                try: df['abs_MPSP'] = df[key_MPSP].abs()
-                except: breakpoint()
+                df['abs_MPSP'] = df[key_MPSP].abs()
                 df['abs_GWP'] = df[key_GWP].abs()
                 select = [df.sort_values(by=[key], ascending=False)[:cutoff_rank]
                         for key in ('abs_MPSP', 'abs_GWP')]
