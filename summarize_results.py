@@ -16,16 +16,23 @@ modules_2G = ['cs', 'sc2g', 'oc2g', 'la']
 # %%
 
 def summarize_baselines():
+    COD_in_new = []
     MPSP_exist, MPSP_new, MPSP_RIN, MPSP_no_WWT = [], [], [], []
     GWP_exist, GWP_new, GWP_RIN, GWP_no_WWT = [], [], [], []
     CAPEX_WWT_exist, CAPEX_WWT_new = [], []
+    CAPEX_WWT_frac_exist, CAPEX_WWT_frac_new = [], []
     electricity_WWT_exist, electricity_WWT_new = [], []
+    electricity_WWT_frac_exist, electricity_WWT_frac_new = [], []
+    ECR_exist, ECR_new = [], []
     get_val = lambda key1, key2: df[(df.type==key1) & (df.metric==key2)].value.item()
 
     dir_path = os.path.join(folder, 'baselines')
     for module in modules_all:
         df_path = os.path.join(dir_path, f'{module}.csv')
         df = pd.read_csv(df_path, names=('type', 'metric', 'value'), skiprows=(0,))
+        
+        COD_in_new.append(get_val('new', 'COD in [mg/L]'))
+        
         per = 'gal'
         try:
             MPSP_exist.append(get_val('exist', f'MPSP [$/{per}]'))
@@ -44,11 +51,19 @@ def summarize_baselines():
 
         CAPEX_WWT_exist.append(get_val('exist', 'WWT CAPEX [MM$]'))
         CAPEX_WWT_new.append(get_val('new', 'WWT CAPEX [MM$]'))
+        CAPEX_WWT_frac_exist.append(get_val('exist', 'WWT CAPEX frac'))
+        CAPEX_WWT_frac_new.append(get_val('new', 'WWT CAPEX frac'))
 
         electricity_WWT_exist.append(get_val('exist', 'WWT annual electricity consumption [MWh/yr]'))
         electricity_WWT_new.append(get_val('new', 'WWT annual electricity consumption [MWh/yr]'))
+        electricity_WWT_frac_exist.append(get_val('exist', 'WWT annual electricity consumption frac'))
+        electricity_WWT_frac_new.append(get_val('new', 'WWT annual electricity consumption frac'))
+
+        ECR_exist.append(get_val('exist', 'WWT ECR'))
+        ECR_new.append(get_val('new', 'WWT ECR'))
 
     df_all = pd.DataFrame({
+        'COD_in': COD_in_new,
         'MPSP_exist': MPSP_exist,
         'MPSP_new': MPSP_new,
         'MPSP_RIN': MPSP_RIN,
@@ -66,12 +81,19 @@ def summarize_baselines():
 
     df_all['CAPEX_WWT_exist'] = CAPEX_WWT_exist
     df_all['CAPEX_WWT_new'] = CAPEX_WWT_new
-    df_all['CAPEX_frac_reduction'] = (df_all.CAPEX_WWT_exist-df_all.CAPEX_WWT_new)/df_all.CAPEX_WWT_exist
+    df_all['CAPEX_reduction'] = (df_all.CAPEX_WWT_exist-df_all.CAPEX_WWT_new)/df_all.CAPEX_WWT_exist
+    df_all['CAPEX_WWT_frac_exist'] = CAPEX_WWT_frac_exist
+    df_all['CAPEX_WWT_frac_new'] = CAPEX_WWT_frac_new
 
     df_all['electricity_WWT_exist'] = electricity_WWT_exist
     df_all['electricity_WWT_new'] = electricity_WWT_new
-    df_all['electricity_WWT_frac_reduction'] = \
+    df_all['electricity_WWT_reduction'] = \
         (df_all.electricity_WWT_exist-df_all.electricity_WWT_new)/df_all.electricity_WWT_exist
+    df_all['electricity_WWT_frac_exist'] = electricity_WWT_frac_exist
+    df_all['electricity_WWT_frac_new'] = electricity_WWT_frac_new
+
+    df_all['ECR_exist'] = ECR_exist
+    df_all['ECR_new'] = ECR_new
 
     df_all['biorefinery'] = modules_all
     df_all.set_index('biorefinery', inplace=True)
