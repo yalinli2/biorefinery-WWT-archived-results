@@ -76,8 +76,8 @@ def summarize_baselines():
     df_all['GWP_new'] = GWP_new
     df_all['GWP_RIN'] = GWP_RIN
     df_all['GWP_no_WWT'] = GWP_no_WWT
-    df_all['GWP_new_frac_reduction'] = (df_all.GWP_exist-df_all.GWP_new)/df_all.GWP_exist
-    df_all['GWP_RIN_frac_reduction'] = (df_all.GWP_exist-df_all.GWP_RIN)/df_all.GWP_exist
+    df_all['GWP_new_frac_reduction'] = (df_all.GWP_exist-df_all.GWP_new)/df_all.GWP_exist.abs()
+    df_all['GWP_RIN_frac_reduction'] = (df_all.GWP_exist-df_all.GWP_RIN)/df_all.GWP_exist.abs()
 
     df_all['CAPEX_WWT_exist'] = CAPEX_WWT_exist
     df_all['CAPEX_WWT_new'] = CAPEX_WWT_new
