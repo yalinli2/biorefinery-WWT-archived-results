@@ -16,7 +16,6 @@ modules_2G = ['cs', 'sc2g', 'oc2g', 'la']
 # %%
 
 def summarize_baselines():
-    COD_in_new = []
     MPSP_exist, MPSP_new, MPSP_RIN, MPSP_no_WWT = [], [], [], []
     GWP_exist, GWP_new, GWP_RIN, GWP_no_WWT = [], [], [], []
     CAPEX_WWT_exist, CAPEX_WWT_new = [], []
@@ -24,15 +23,15 @@ def summarize_baselines():
     electricity_WWT_exist, electricity_WWT_new = [], []
     electricity_WWT_frac_exist, electricity_WWT_frac_new = [], []
     ECR_exist, ECR_new = [], []
+    COD_in_new, COD_load_new, COD_cost_new, COD_GWP_new = [], [], [], []
+    
     get_val = lambda key1, key2: df[(df.type==key1) & (df.metric==key2)].value.item()
 
     dir_path = os.path.join(folder, 'baselines')
     for module in modules_all:
         df_path = os.path.join(dir_path, f'{module}.csv')
         df = pd.read_csv(df_path, names=('type', 'metric', 'value'), skiprows=(0,))
-        
-        COD_in_new.append(get_val('new', 'COD in [mg/L]'))
-        
+               
         per = 'gal'
         try:
             MPSP_exist.append(get_val('exist', f'MPSP [$/{per}]'))
@@ -61,9 +60,13 @@ def summarize_baselines():
 
         ECR_exist.append(get_val('exist', 'WWT ECR'))
         ECR_new.append(get_val('new', 'WWT ECR'))
+        
+        COD_in_new.append(get_val('new', 'COD in [mg/L]'))
+        COD_load_new.append(get_val('new', 'COD annual load [tonne/yr]'))
+        COD_cost_new.append(get_val('new', 'COD price [$/tonne]'))
+        COD_GWP_new.append(get_val('new', 'COD GWP disp [kg CO2/tonne]'))
 
     df_all = pd.DataFrame({
-        'COD_in': COD_in_new,
         'MPSP_exist': MPSP_exist,
         'MPSP_new': MPSP_new,
         'MPSP_RIN': MPSP_RIN,
@@ -94,6 +97,11 @@ def summarize_baselines():
 
     df_all['ECR_exist'] = ECR_exist
     df_all['ECR_new'] = ECR_new
+    
+    df_all['COD_in_new'] = COD_in_new
+    df_all['COD_load_new'] = COD_load_new
+    df_all['COD_cost_new'] = COD_cost_new
+    df_all['COD_GWP_new'] = COD_GWP_new
 
     df_all['biorefinery'] = modules_all
     df_all.set_index('biorefinery', inplace=True)
@@ -157,15 +165,19 @@ def summarize_uncertainties(N=1000):
         df = pd.concat(df_lst, axis=1)
         df = df.droplevel(0, axis=1)
         old_col_names = df.columns.to_list()
-        old_col_names = [i.split('[')[0][:-1] for i in old_col_names]
-        col_names = ['Exist '+old_col_names[0], 'New '+old_col_names[1]]
+        if 'foo' not in old_col_names:
+            old_col_names = [i.split('[')[0][:-1] for i in old_col_names]
+            col_names = ['Exist '+old_col_names[0], 'New '+old_col_names[1]]
+        else:
+            col_names = ['Exist NA', 'New '+old_col_names[1]]
         if len(old_col_names) > 2: col_names.extend(old_col_names[2:])
         df.columns = col_names
         return df
-        
+  
     compiled = [pd.concat([compile_exist_and_new(df_lst)
                            for df_lst in dct.values()])
                 for dct in dct_lst]
+
     sheet_names = ['MPSP', 'GWP', 'CAPEX', 'Electricity', 'ECR', 'CO2tot', 'CO2net']
     writer = pd.ExcelWriter(os.path.join(folder, f'summary_uncertainty_{N}.xlsx'))
     for df, name in zip(compiled, sheet_names): df.to_excel(writer, sheet_name=name)
@@ -284,7 +296,7 @@ def summarize_BMPs(
 
 if __name__ == '__main__':
     N = 1000
-    summarize_baselines()
+    # summarize_baselines()
     summarize_uncertainties(N=N)
-    summarize_spearman(N=N)
-    summarize_BMPs()
+    # summarize_spearman(N=N)
+    # summarize_BMPs()
