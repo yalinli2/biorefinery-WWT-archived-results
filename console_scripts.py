@@ -47,12 +47,12 @@ def load(module):
     exist_tea, new_tea = exist_sys.TEA, new_sys.TEA
 
 if __name__ == '__main__':
-    module = 'cn'
+    # module = 'cn'
     # module = 'sc1g'
     # module = 'oc1g'
     # module = 'cs'
     # module = 'sc2g'
-    # module = 'oc2g'
+    module = 'oc2g'
     # module = 'la'
     load(module)
     for m in (exist_model, new_model): m.metrics_at_baseline()
