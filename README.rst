@@ -2,4 +2,8 @@
 Biorefinery WWT Archived Results
 ================================
 
-This repository contains the archived files (results, figures, etc.) for the manuscript *Design of a Small-Footprint Wastewater Treatment and Energy Recovery Process for Biorefineries* under preparation. Scripts used to generate these results can be found in the `wwt <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/wwt>`_ module of the Bioindustrial-Park repository.
+This repository contains the archived files (results, figures, etc.) for the manuscript titled *Design of a High-Rate Wastewater Treatment Process for Energy and Water Recovery at Biorefineries* [1]_. Scripts used to generate these results can be found in the `wwt <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/wwt>`_ module of the Bioindustrial-Park repository.
+
+References
+----------
+.. [1] Li et al., Design of a High-Rate Wastewater Treatment Process for Energy and Water Recovery at Biorefineries. *In Prep.* 2022.
